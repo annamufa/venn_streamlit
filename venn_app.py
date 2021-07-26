@@ -8,12 +8,20 @@ st.title('Venn plots')
 st.text('You can choose the number of lists on the left, write the values and label them.')
 st.text('Scroll down to get the intersection for your lists.')
 
-collect_list = lambda x: [i for i in re.split(",", x) if i != ""]
-
 n_venn = st.sidebar.selectbox(
     "How many lists do you have?",
     (2,3,4)
 )
+
+separator = st.sidebar.selectbox(
+    "What separator?",
+    (",", "space or tab")
+)
+
+if separator == ",":
+    collect_list = lambda x: [i for i in re.split(",", x) if i != ""]
+else:
+    collect_list = lambda x: [i for i in re.split(" ", x) if i != ""]
 
 list_1 = collect_list(st.sidebar.text_input("List 1"))
 list_2 = collect_list(st.sidebar.text_input("List 2"))
