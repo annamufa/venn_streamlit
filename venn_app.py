@@ -5,8 +5,8 @@ import re
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.title('Venn plots')
 
-st.text('You can choose the number of lists on the left, paste each list and label them.')
-st.text('You can then get the intersection for your lists')
+st.text('You can choose the number of lists on the left, write the values and label them.')
+st.text('Scroll down to get the intersection for your lists.')
 
 collect_list = lambda x: [i for i in re.split(",", x) if i != ""]
 
