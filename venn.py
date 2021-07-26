@@ -6,11 +6,10 @@ from collections import Iterable
 alignment = {'horizontalalignment': 'center', 'verticalalignment': 'baseline'}
 
 
-def venn(data, names=None, fill="number", show_names=True, show_plot=False, **kwds):
+def venn(data, names=None, show_names=True, show_plot=False, **kwds):
     """
     data: a list
     names: names of groups in data
-    fill = ["number"|"logic"|"both"], fill with number, logic label, or both
     show_names = [True|False]
     show_plot = [True|False]
     """
@@ -18,42 +17,21 @@ def venn(data, names=None, fill="number", show_names=True, show_plot=False, **kw
     if data is None or data == []:
         raise Exception("No data!")
     if len(data) == 2:
-        venn2(data, names, fill, show_names, show_plot, **kwds)
+        venn2(data, names, show_names, show_plot, **kwds)
     elif len(data) == 3:
-        venn3(data, names, fill, show_names, show_plot, **kwds)
+        venn3(data, names, show_names, show_plot, **kwds)
     elif len(data) == 4:
-        venn4(data, names, fill, show_names, show_plot, **kwds)
+        venn4(data, names, show_names, show_plot, **kwds)
     else:
         raise Exception("currently only 2-4 sets venn diagrams are supported")
 
 
-# --------------------------------------------------------------------
-def get_labels(data, fill="number"):
-    """
-    to get a dict of labels for groups in data
-    input
-      data: data to get label for
-      fill = ["number"|"logic"|"both"], fill with number, logic label, or both
-    return
-      labels: a dict of labels for different sets
-    example:
-    In [12]: get_labels([range(10), range(5,15), range(3,8)], fill="both")
-    Out[12]:
-    {'001': '001: 0',
-     '010': '010: 5',
-     '011': '011: 0',
-     '100': '100: 3',
-     '101': '101: 2',
-     '110': '110: 2',
-     '111': '111: 3'}
-    """
-
+def get_intersections(data):
     N = len(data)
 
     sets_data = [set(data[i]) for i in range(N)]  # sets for separate groups
     s_all = set(chain(*data))  # union of all sets
 
-    # bin(3) --> '0b11', so bin(3).split('0b')[-1] will remove "0b"
     set_collections = {}
     for n in range(1, 2 ** N):
         key = bin(n).split('0b')[-1].zfill(N)
@@ -66,26 +44,29 @@ def get_labels(data, fill="number"):
             value = value - s
         set_collections[key] = value
 
-    if fill == "number":
-        labels = {k: len(set_collections[k]) for k in set_collections}
-    elif fill == "logic":
-        labels = {k: k for k in set_collections}
-    elif fill == "both":
-        labels = {k: ("%s: %d" % (k, len(set_collections[k]))) for k in set_collections}
-    else:  # invalid value
-        raise Exception("invalid value for fill")
+    return set_collections
+
+def get_labels(data):
+    """
+    to get a dict of labels for groups in data
+      labels: a dict of labels for different sets
+    """
+
+    set_collections = get_intersections(data)
+
+    labels = {k: len(set_collections[k]) for k in set_collections}
 
     return labels
 
 
 # --------------------------------------------------------------------
-def venn2(data=None, names=None, fill="number", show_names=True, show_plot=True, **kwds):
+def venn2(data=None, names=None, show_names=True, show_plot=True, **kwds):
     if (data is None) or len(data) != 2:
         raise Exception("length of data should be 2!")
     if (names is None) or (len(names) != 2):
         names = ("set 1", "set 2")
 
-    labels = get_labels(data, fill=fill)
+    labels = get_labels(data)
 
     # set figure size
     if 'figsize' in kwds and len(kwds['figsize']) == 2:
@@ -134,16 +115,16 @@ def venn2(data=None, names=None, fill="number", show_names=True, show_plot=True,
 
     if show_plot:
         plt.show()
-
+    return fig
 
 # --------------------------------------------------------------------
-def venn3(data=None, names=None, fill="number", show_names=True, show_plot=True, **kwds):
+def venn3(data=None, names=None, show_names=True, show_plot=True, **kwds):
     if (data is None) or len(data) != 3:
         raise Exception("length of data should be 3!")
     if (names is None) or (len(names) != 3):
         names = ("set 1", "set 2", "set 3")
 
-    labels = get_labels(data, fill=fill)
+    labels = get_labels(data)
 
     # set figure size
     if 'figsize' in kwds and len(kwds['figsize']) == 2:
@@ -199,16 +180,17 @@ def venn3(data=None, names=None, fill="number", show_names=True, show_plot=True,
 
     if show_plot:
         plt.show()
+    return fig
 
 
 # --------------------------------------------------------------------
-def venn4(data=None, names=None, fill="number", show_names=True, show_plot=True, **kwds):
+def venn4(data=None, names=None, show_names=True, show_plot=True, **kwds):
     if (data is None) or len(data) != 4:
         raise Exception("length of data should be 4!")
     if (names is None) or (len(names) != 4):
         names = ("set 1", "set 2", "set 3", "set 4")
 
-    labels = get_labels(data, fill=fill)
+    labels = get_labels(data)
 
     # set figure size
     if 'figsize' in kwds and len(kwds['figsize']) == 2:
@@ -270,24 +252,9 @@ def venn4(data=None, names=None, fill="number", show_names=True, show_plot=True,
     leg = ax.legend(names, loc='best', fancybox=True)
     leg.get_frame().set_alpha(0.5)
 
-    return fig
     if show_plot:
         plt.show()
+    return fig
 
-
-# --------------------------------------------------------------------
-def test():
-    """ a test function to show basic usage of venn()"""
-
-    # venn3()
-    venn([range(10), range(5, 15), range(3, 8)], ["aaaa", "bbbb", "cccc"], fill="both", show_names=False)
-    # venn2()
-    venn([range(10), range(5, 15)])
-    venn([range(10), range(5, 15)], ["aaaa", "bbbb"], fill="logic", show_names=False)
-    # venn4()
-    venn([range(10), range(5, 15), range(3, 8), range(4, 9)], ["aaaa", "bbbb", "cccc", "dddd"], figsize=(12, 12))
-
-
-# --------------------------------------------------------------------
 if __name__ == '__main__':
     test()
